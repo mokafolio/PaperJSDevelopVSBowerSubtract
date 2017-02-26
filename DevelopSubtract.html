@@ -1,0 +1,76 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Develop Boolean Subtract</title>
+<script type="text/javascript" src="js/develop/paper-full.js"></script>
+<script type="text/paperscript" canvas="theCanvas">
+var shapes = [];
+
+function randomComp()
+{
+    shapes = [];
+    var bp = new Point(100, 100)
+    for(var i=0; i < 200; i++)
+    {
+        var p = new Path.Circle(bp + new Point(Math.random() * 300, Math.random() * 300), 
+        10 + Math.random() * 20);
+        p.strokeColor = "black";
+        p.fillColor = "red";
+        shapes.push(p);
+    }
+}
+
+randomComp();
+
+function recursiveCut(_item, _shapes, _startIndex)
+{
+    //console.log("RECURSIVE CUT");
+    var me = _item;
+    if(me instanceof Group)
+    {
+        //console.log("CUT GROUP");
+        for(var i=0; i < me.children.length; i++)
+        {
+            recursiveCut(me.children[i], _shapes, _startIndex);
+        }
+    }
+    else
+    {
+        //console.log("CUT PATH");
+        for(var j=_startIndex; j < _shapes.length; j++)
+        {
+            /*if(me.closed)
+            {
+                me.add(me.firstSegment)
+                me.closed = false;
+            }*/
+            
+            var nme = me.subtract(_shapes[j]);
+            me.remove();
+            me = nme;
+            if(me instanceof Group)
+            {
+                recursiveCut(me, _shapes, j + 1);
+                break;
+            }
+        }
+    }
+    me.fillColor = undefined;
+    return me;
+}
+
+var t0 = performance.now();
+for(var i=0; i < shapes.length; i++)
+{
+    console.log("Cutting", i + 1, "out of", shapes.length);
+    recursiveCut(shapes[i], shapes, i + 1);
+}
+var t1 = performance.now();
+console.log("BOOLEAN OPS TOOK: " + (t1 - t0) + "ms.");
+
+</script>
+</head>
+<body>
+<canvas id="theCanvas"  width="1000" height="1000"></canvas>
+</body>
+</html>
